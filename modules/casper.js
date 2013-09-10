@@ -460,7 +460,7 @@ Casper.prototype.clickLabel = function clickLabel(label, tag) {
     this.checkStarted();
     tag = tag || "*";
     var escapedLabel = utils.quoteXPathAttributeString(label);
-    var selector = selectXPath(f('//%s[text()=%s]', tag, escapedLabel));
+    var selector = selectXPath(f('//%s[normalize-space(text())=%s]', tag, escapedLabel));
     return this.click(selector);
 };
 
