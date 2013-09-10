@@ -164,6 +164,7 @@ var Casper = function Casper(options) {
     this.steps = [];
     this.waiters = [];
     this._test = undefined;
+    this._fake = undefined;
     this.__defineGetter__('test', function() {
         if (!phantom.casperTest) {
             throw new CasperError('casper.test property is only available using the `casperjs test` command');
@@ -172,6 +173,15 @@ var Casper = function Casper(options) {
             this._test = tester.create(this);
         }
         return this._test;
+    });
+    this.__defineGetter__('fake', function() {
+        if (!phantom.casperTest) {
+            throw new CasperError('casper.fake property is only available using the `casperjs test` command');
+        }
+        if (!utils.isObject(this._fake)) {
+            this._fake = require('MinFaker');
+        }
+        return this._fake;
     });
 
     // init phantomjs error handler
