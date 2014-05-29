@@ -349,6 +349,18 @@ Emitted when a remote `window.callPhantom(data) <https://github.com/ariya/phanto
 
 Emitted when any remote console logging call has been performed.
 
+``resource.error``
+~~~~~~~~~~~~~~~~~~~~~
+
+**Arguments:** ``resourceError``
+
+Emitted when any requested resource fails to load properly. The received ``resourceError`` object has the following properties:
+
+- ``errorCode``: error code
+- ``errorString``: error description
+- ``url``: resource url
+- ``id``: resource id
+
 ``resource.received``
 ~~~~~~~~~~~~~~~~~~~~~
 
@@ -437,9 +449,9 @@ Emitted when a navigation step has been started.
 ``step.timeout``
 ~~~~~~~~~~~~~~~~
 
-**Arguments:** ``None``
+**Arguments:** ``[step, timeout]``
 
-Emitted when a navigation step has been executed.
+Emitted when a navigation step has timed out.
 
 ``timeout``
 ~~~~~~~~~~~
@@ -483,9 +495,11 @@ Emitted when a ``Casper.wait()`` operation starts.
 ``waitFor.timeout``
 ~~~~~~~~~~~~~~~~~~~
 
-**Arguments:** ``None``
+**Arguments:** ``[timeout, details]``
 
-Emitted when the execution time of a ``Casper.wait*()`` operation has exceeded the value of ``Casper.options.stepTimeout``.
+Emitted when the execution time of a ``Casper.wait*()`` operation has exceeded the value of ``timeout``.
+
+``deatils`` is a property bag describing what was being waited on. For example, if ``waitForSelector`` timed out, ``details`` will have a ``selector`` string property that was the selector that did not show up in time.
 
 
 .. index:: filters

@@ -19,20 +19,20 @@ and [SlimerJS](http://slimerjs.org/). It eases the process of defining a full na
 scenario and provides useful high-level functions, methods & syntaxic sugar for doing common
 tasks such as:
 
-- defining & ordering [navigation steps](http://casperjs.org/quickstart.html)
-- [filling forms](http://casperjs.org/api.html#casper.fill)
-- [clicking links](http://casperjs.org/api.html#casper.click)
-- [capturing screenshots](http://casperjs.org/api.html#casper.captureSelector) of a page (or an area)
-- [making assertions on remote DOM](http://casperjs.org/api.html#tester)
-- [logging](http://casperjs.org/logging.html) & [events](http://casperjs.org/events-filters.html)
-- [downloading base64](http://casperjs.org/api.html#casper.download) encoded resources, even binary ones
+- defining & ordering [navigation steps](http://docs.casperjs.org/en/latest/quickstart.html)
+- [filling forms](http://docs.casperjs.org/en/latest/modules/casper.html#fill)
+- [clicking links](http://docs.casperjs.org/en/latest/modules/casper.html#click)
+- [capturing screenshots](http://docs.casperjs.org/en/latest/modules/casper.html#captureselector) of a page (or an area)
+- [making assertions on remote DOM](http://docs.casperjs.org/en/latest/modules/tester.html)
+- [logging](http://docs.casperjs.org/en/latest/logging.html) & [events](http://docs.casperjs.org/en/latest/events-filters.html)
+- [downloading](http://docs.casperjs.org/en/latest/modules/casper.html#download) resources, even binary ones
 - catching errors and react accordingly
-- writing [functional test suites](http://casperjs.org/testing.html), exporting results as JUnit XML (xUnit)
+- writing [functional test suites](http://docs.casperjs.org/en/latest/testing.html), exporting results as JUnit XML (xUnit)
 
 Browse the [sample examples repository](https://github.com/n1k0/casperjs/tree/master/samples).
 Don't hesitate to pull request for any cool example of yours as well!
 
-**Read the [full documentation](http://casperjs.org/) on casperjs dedicated website.**
+**Read the [full documentation](http://docs.casperjs.org/) on casperjs documentation website.**
 
 Subscribe to the [project mailing-list](https://groups.google.com/forum/#!forum/casperjs)
 
@@ -40,11 +40,13 @@ Follow the CasperJS project [on twitter](https://twitter.com/casperjs_org) and [
 
 ## Show me some code!
 
+First [install CasperJS](http://docs.casperjs.org/en/latest/installation.html), we'll use 1.1 beta here.
+
 Sample test to see if some dropdown can be opened:
 
 ```javascript
-casper.test.begin('a twitter bootsrap dropdown can be opened', 2, function(test) {
-    casper.start('http://twitter.github.com/bootstrap/javascript.html#dropdowns', function() {
+casper.test.begin('a twitter bootstrap dropdown can be opened', 2, function(test) {
+    casper.start('http://getbootstrap.com/2.3.2/javascript.html#dropdowns', function() {
         test.assertExists('#navbar-example');
         this.click('#dropdowns .nav-pills .dropdown:last-of-type a.dropdown-toggle');
         this.waitUntilVisible('#dropdowns .nav-pills .open', function() {
@@ -62,10 +64,11 @@ Run the script:
 
 ##Support
 
-If you're having problems with using the project, use the support forum at CodersClan.
+Need help with getting CasperJS up and running? Got a time-consuming problem you want to get solved quickly?
 
-<a href="http://codersclan.net/forum/index.php?repo_id=32"><img src="http://www.codersclan.net/graphics/getSupport_blue_big.png" width="160"></a>
+Get <a href="http://codersclan.net/?repo_id=32">CasperJS support on CodersClan.</a>
 
+<a href="http://codersclan.net/?repo_id=32"><img src="http://www.codersclan.net/gs_button/?repo_id=32" width="200"></a>
 ## Contributing
 
 ### Contributing code
@@ -78,38 +81,14 @@ CasperJS's documentation is written using the [Markdown format](http://daringfir
 
 To view the source files on github, head to [the gh-pages branch](https://github.com/n1k0/casperjs/tree/gh-pages), and check the [documentation's README](https://github.com/n1k0/casperjs/tree/gh-pages#readme) for further instructions.
 
-# FAKER
+## Team
 
-It is nice to have helpers to generate fake data sets; the boo branch
-cherry-picks the Faker object from Faker.js and exposes it under the
-casperjs test command, as casper.fake. 
+- Nicolas Perriault ([@n1k0](https://github.com/n1k0))
+- Nick Currier ([@hexid](https://github.com/hexid))
+- Laurent Jouanneau ([@laurentj](https://github.com/laurentj))
+- Mickaël Andrieu ([@mickaelandrieu](https://github.com/mickaelandrieu))
+- Matt DuVall ([@mduvall](https://github.com/mduvall))
 
-See [Marak/Faker.js][https://github.com/Marak/Faker.js] for further details of the Fakerjs API.
+## License
 
-Per the Fakerjs copyright, it is included in this branch's README.md: 
-
-## Authors
-####Matthew Bergman & Marak Squires
-Heavily inspired by Benjamin Curtis's Ruby Gem [Faker](http://faker.rubyforge.org/) and Perl's [Data::Faker](http://search.cpan.org/~jasonk/Data-Faker-0.07/lib/Data/Faker.pm)
-<br/>
-Copyright (c) 2010 Matthew Bergman & Marak Squires http://github.com/marak/Faker.js/
-<br/>
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-<br/>
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-<br/>
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
-LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
+MIT

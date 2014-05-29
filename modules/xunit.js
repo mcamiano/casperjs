@@ -82,10 +82,6 @@ function XUnitExporter() {
     "use strict";
     this.results = undefined;
     this._xml = utils.node('testsuites');
-    this._xml.toString = function toString() {
-        var serializer = new XMLSerializer();
-        return '<?xml version="1.0" encoding="UTF-8"?>' + serializer.serializeToString(this);
-    };
 }
 exports.XUnitExporter = XUnitExporter;
 
@@ -153,9 +149,20 @@ XUnitExporter.prototype.getXML = function getXML() {
         suiteNode.appendChild(warningNode);
         this._xml.appendChild(suiteNode);
     }.bind(this));
-    this._xml.setAttribute('duration', utils.ms2seconds(this.results.calculateDuration()));
+    this._xml.setAttribute('time', utils.ms2seconds(this.results.calculateDuration()));
     return this._xml;
 };
+
+/**
+ * Retrieves generated Xunit XML
+ *
+ * @return string
+ */
+XUnitExporter.prototype.getSerializedXML = function getSerializedXML(xml) {
+    "use strict";
+    var serializer = new XMLSerializer();
+    return '<?xml version="1.0" encoding="UTF-8"?>' + serializer.serializeToString(this.getXML());
+}
 
 /**
  * Sets test results.

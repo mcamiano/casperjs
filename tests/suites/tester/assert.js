@@ -2,7 +2,7 @@
 /*jshint strict:false, maxstatements:99*/
 var fs = require('fs');
 
-casper.test.begin('Common assertions tests', 50, function(test) {
+casper.test.begin('Common assertions tests', 47, function(test) {
     casper.start('tests/site/index.html', function() {
         test.assertTextExists('form', 'Tester.assertTextExists() checks that page body contains text');
         test.assertTextExist('form', 'Tester.assertTextExist() checks that page body contains text [alias]');
@@ -48,30 +48,25 @@ casper.test.begin('Common assertions tests', 50, function(test) {
         test.assertRaises(function() {
             throw new Error('plop');
         }, [], 'Tester.assertRaises() works as expected');
-        test.assertRaise(function() {
-            throw new Error('plop');
-        }, [], 'Tester.assertRaise() works as expected [alias]');
-        test.assertThrows(function() {
-            throw new Error('plop');
-        }, [], 'Tester.assertThrows() works as expected [alias]');
+        try {
+            test.assertRaises(function() {}, []);
+            test.fail("Tester.assertRaises() doesn't pass when no error is thrown");
+        } catch (err) {
+            test.pass("Tester.assertRaises() doesn't pass when no error is thrown");
+        }
         test.assertResourceExists(/index\.html/, 'Tester.assertResourceExists() works as expected');
         test.assertResourceExist(/index\.html/, 'Tester.assertResourceExist() works as expected [alias]');
         test.assertTitle('CasperJS test index', 'Tester.assertTitle() works as expected');
         test.assertTitleMatch(/test index/, 'Tester.assertTitleMatch() works as expected');
         test.assertTitleMatches(/test index/, 'Tester.assertTitleMatches() works as expected [alias]');
         test.assertType("plop", "string", "Tester.assertType() works as expected");
-        // we need a class and an instance of this class
-        function Cow(){} var daisy = new Cow();
-        test.assertInstanceOf(12, "Number", "Tester.assertInstanceOf() works as expected");
-        test.assertInstanceOf("Boo", "String", "Tester.assertInstanceOf() works as expected");
-        test.assertInstanceOf(["moo", "bar"], "Array", "Tester.assertInstanceOf() works as expected")
-        test.assertInstanceOf(true, "Boolean", "Test.assertInstanceOf() works as expected");
-        test.assertInstanceOf(daisy, "Cow", "Tester.assertInstanceOf() works as expected");
+        test.assertInstanceOf("plop", String, "Tester.assertInstanceOf() works as expected");
         test.assertUrlMatch(/index\.html$/, "Tester.assertUrlMatch() works as expected");
         test.assertUrlMatches(/index\.html$/, "Tester.assertUrlMatches() works as expected [alias]");
         test.assertVisible('img', 'Tester.assertVisible() works as expected');
         test.assertNotVisible('p#hidden', 'Tester.assertNotVisible() works as expected');
         test.assertInvisible('p#hidden', 'Tester.assertInvisible() works as expected [alias]');
+        test.assertExists('div#exports', 'Tester.assertExists() works as expected with reserved word id');
     }).run(function() {
         test.done();
     });
@@ -135,8 +130,94 @@ casper.test.begin('Tester.assertField(): nonexistent fields', 2, function(test) 
         test.assertFail(function() {
             test.assertField('nonexistent', '');
         }, 'Tester.assertField() only checks for existing fields');
-    });
-    casper.run(function() {
+    }).run(function() {
         test.done();
-    })
+    });
+});
+
+casper.test.begin('Tester.assertField(): CSS selectors', 1, function(test) {
+    casper.start('tests/site/form.html', function() {
+        this.fill('form[action="result.html"]', {
+            'email': 'albert@camus.com'
+        });
+
+        test.assertField({
+            type: 'css',
+            path: '#email'
+        },
+            'albert@camus.com',
+            'Tester.assertField() works as expected with CSS selectors'
+        );
+    }).run(function() {
+        test.done();
+    });
+});
+
+casper.test.begin('Tester.assertField(): XPath selectors', 1, function(test) {
+    casper.start('tests/site/form.html', function() {
+        this.fill('form[action="result.html"]', {
+            'email': 'albert@camus.com'
+        });
+
+        test.assertField({
+            type: 'xpath',
+            path: '/html/body/form[1]/input[1]'
+        },
+             'albert@camus.com',
+             'Tester.assertField() works as expected with XPath selectors'
+        );
+    }).run(function() {
+        test.done();
+    });
+});
+
+casper.test.begin('Tester.assertField(): invalid selectors', 1, function(test) {
+    casper.start('tests/site/form.html', function() {
+        this.fill('form[action="result.html"]', {
+            'email': 'albert@camus.com'
+        });
+
+        test.assertRaise(function() {
+            test.assertField({
+                type: 'albert'
+            },
+                 'albert@camus.com',
+                 'Tester.assertField() works as expected with XPath selectors'
+            );
+        }, [], 'should throw an error for an invalid selector');
+    }).run(function() {
+        test.done();
+    });
+});
+
+casper.test.begin('Tester.assertFieldCSS(): CSS selectors', 1, function(test) {
+    casper.start('tests/site/form.html', function() {
+        this.fill('form[action="result.html"]', {
+            'email': 'albert@camus.com'
+        });
+
+        test.assertFieldCSS(
+            '#email',
+            'albert@camus.com',
+            'Tester.assertFieldCSS() works as expected with CSS selectors'
+        );
+    }).run(function() {
+        test.done();
+    });
+});
+
+casper.test.begin('Tester.assertFieldXPath(): XPath selectors', 1, function(test) {
+    casper.start('tests/site/form.html', function() {
+        this.fill('form[action="result.html"]', {
+            'email': 'albert@camus.com'
+        });
+
+        test.assertFieldXPath(
+             '/html/body/form[1]/input[1]',
+             'albert@camus.com',
+             'Tester.assertFieldXPath() works as expected with XPath selectors'
+        );
+    }).run(function() {
+        test.done();
+    });
 });

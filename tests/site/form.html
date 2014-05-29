@@ -6,7 +6,7 @@
     </head>
     <body>
         <form action="result.html" enctype="multipart/form-data">
-            <input type="text" name="email" placeholder="email">
+            <input type="email" name="email" placeholder="email" id="email">
             <input type="password" name="password" placeholder="password">
             <input type="text" name="language" placeholder="language">
             <input type="whatever" name="strange">
@@ -14,6 +14,11 @@
             <select name="topic">
                 <option>foo</option>
                 <option value="bar">baz</option>
+            </select>
+            <select multiple name="multitopic">
+                <option>foo</option>
+                <option value="bar">baz</option>
+                <option value="car">caz</option>
             </select>
             <input type="checkbox" name="check">
             <input type="radio" name="choice" value="yes">
@@ -26,10 +31,14 @@
         </form>
         <form id="no-type-test-form" action="#" enctype="multipart/form-data">
             <input name="notype">
-        <form>
+        </form>
+
         <script>
             (function () {
                 'use strict';
+
+                // Force fields initialization
+                document.querySelector("input[name=email]").value = "";
 
                 // El-cheapo autocomplete
 

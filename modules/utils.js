@@ -71,6 +71,37 @@ function betterTypeOf(input) {
 exports.betterTypeOf = betterTypeOf;
 
 /**
+ * Provides a better instanceof operator, capable of checking against the full object prototype hierarchy.
+ *
+ * @param  mixed  input
+ * @param  function constructor
+ * @return String
+ * @see    https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Details_of_the_Object_Model
+ */
+function betterInstanceOf(input, constructor) {
+    "use strict";
+    /*jshint eqnull:true, eqeqeq:false */
+    if (typeof input == 'undefined' || input == null) {
+      return false;
+    }
+    var inputToTest = input;
+    while (inputToTest != null) {
+      if (inputToTest == constructor.prototype) {
+        return true;
+      }
+      if (typeof inputToTest == 'xml') {
+        return constructor.prototype == document.prototype;
+      }
+      if (typeof inputToTest == 'undefined') {
+        return false;
+      }
+      inputToTest = inputToTest.__proto__;
+    }
+    return equals(input.constructor.name, constructor.name);
+}
+exports.betterInstanceOf = betterInstanceOf;
+
+/**
  * Cleans a passed URL.
  *
  * @param  String  url An HTTP URL
@@ -595,17 +626,40 @@ function isPlainObject(obj) {
     return (type === 'object');
 }
 
-function mergeObjectsInSlimerjs(origin, add) {
+/**
+ * Object recursive merging utility for use in the SlimerJS environment
+ *
+ * @param  Object  origin  the origin object
+ * @param  Object  add     the object to merge data into origin
+ * @param  Object  opts    optional options to be passed in
+ * @return Object
+ */
+function mergeObjectsInGecko(origin, add, opts) {
     "use strict";
+
+    var options = opts || {},
+        keepReferences = options.keepReferences;
+
     for (var p in add) {
         if (isPlainObject(add[p])) {
             if (isPlainObject(origin[p])) {
                 origin[p] = mergeObjects(origin[p], add[p]);
             } else {
-                origin[p] = clone(add[p]);
+                origin[p] = keepReferences ? add[p] : clone(add[p]);
             }
         } else {
-            origin[p] = add[p];
+            // if a property is only a getter, we could have a Javascript error
+            // in strict mode "TypeError: setting a property that has only a getter"
+            // when setting the value to the new object (gecko 25+).
+            // To avoid it, let's define the property on the new object, do not set
+            // directly the value
+            var prop = Object.getOwnPropertyDescriptor(add, p);
+            if (prop.get && !prop.set) {
+                Object.defineProperty(origin, p, prop)
+            }
+            else {
+                origin[p] = add[p];
+            }
         }
     }
     return origin;
@@ -616,23 +670,28 @@ function mergeObjectsInSlimerjs(origin, add) {
  *
  * @param  Object  origin  the origin object
  * @param  Object  add     the object to merge data into origin
+ * @param  Object  opts    optional options to be passed in
  * @return Object
  */
-function mergeObjects(origin, add) {
+function mergeObjects(origin, add, opts) {
     "use strict";
+
+    var options = opts || {},
+        keepReferences = options.keepReferences;
 
     if (phantom.casperEngine === 'slimerjs') {
         // Because of an issue in the module system of slimerjs (security membranes?)
         // constructor is undefined.
         // let's use an other algorithm
-        return mergeObjectsInSlimerjs(origin, add);
+        return mergeObjectsInGecko(origin, add, options);
     }
+
     for (var p in add) {
         if (add[p] && add[p].constructor === Object) {
             if (origin[p] && origin[p].constructor === Object) {
                 origin[p] = mergeObjects(origin[p], add[p]);
             } else {
-                origin[p] = clone(add[p]);
+                origin[p] = keepReferences ? add[p] : clone(add[p]);
             }
         } else {
             origin[p] = add[p];

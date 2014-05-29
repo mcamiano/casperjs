@@ -44,12 +44,24 @@ if (!('phantom' in this)) {
 
 // Common polyfills
 if (typeof Function.prototype.bind !== "function") {
-    Function.prototype.bind = function(scope) {
+    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/bind#Compatibility
+    Function.prototype.bind = function (oThis) {
         "use strict";
-        var _function = this;
-        return function() {
-            return _function.apply(scope, arguments);
-        };
+        /* jshint -W055 */
+        if (typeof this !== "function") {
+            // closest thing possible to the ECMAScript 5 internal IsCallable function
+            throw new TypeError("Function.prototype.bind - what is trying to be bound is not callable");
+        }
+        var aArgs = Array.prototype.slice.call(arguments, 1),
+            fToBind = this,
+            fNOP = function() {},
+            fBound = function() {
+              return fToBind.apply(this instanceof fNOP && oThis ? this : oThis,
+                                   aArgs.concat(Array.prototype.slice.call(arguments)));
+            };
+        fNOP.prototype = this.prototype;
+        fBound.prototype = new fNOP();
+        return fBound;
     };
 }
 
@@ -64,6 +76,7 @@ CasperError.prototype = Object.getPrototypeOf(new Error());
 
 // casperjs env initialization
 (function(global, phantom){
+    /*jshint maxstatements:99*/
     "use strict";
     // phantom args
     // NOTE: we can't use require('system').args here for some very obscure reason
@@ -185,10 +198,33 @@ CasperError.prototype = Object.getPrototypeOf(new Error());
         if (require.patched) {
             return require;
         }
+        function fromPackageJson(module, dir) {
+            var pkgPath, pkgContents, pkg;
+            pkgPath = fs.pathJoin(dir, module, 'package.json');
+            if (!fs.exists(pkgPath)) {
+                return;
+            }
+            pkgContents = fs.read(pkgPath);
+            if (!pkgContents) {
+                return;
+            }
+            try {
+                pkg = JSON.parse(pkgContents);
+            } catch (e) {
+                return;
+            }
+            if (typeof pkg === "object" && pkg.main) {
+                return fs.absolute(fs.pathJoin(dir, module, pkg.main));
+            }
+        }
         function resolveFile(path, dir) {
             var extensions = ['js', 'coffee', 'json'];
             var basenames = [path, path + '/index'];
             var paths = [];
+            var nodejsScript = fromPackageJson(path, dir);
+            if (nodejsScript) {
+                return nodejsScript;
+            }
             basenames.forEach(function(basename) {
                 paths.push(fs.absolute(fs.pathJoin(dir, basename)));
                 extensions.forEach(function(extension) {
@@ -273,7 +309,7 @@ CasperError.prototype = Object.getPrototypeOf(new Error());
             phantom.casperScript = casperArgs.get(0);
         }
 
-        if (!fs.isFile(phantom.casperScript)) {
+        if (phantom.casperScript !== "/dev/stdin" && !fs.isFile(phantom.casperScript)) {
             return __die('Unable to open file: ' + phantom.casperScript);
         }
 
@@ -317,22 +353,23 @@ CasperError.prototype = Object.getPrototypeOf(new Error());
         };
     })(phantom.casperPath);
 
-    if ("slimer" in global) {
-        // for SlimerJS, use the standard API to declare directories
-        // where to search modules
+    if ("paths" in global.require) {
+        // declare a dummy patchRequire function
+        global.patchRequire = function(req) {return req;};
+
         require.paths.push(fs.pathJoin(phantom.casperPath, 'modules'));
         require.paths.push(fs.workingDirectory);
-
-        // declare a dummy patchRequire function
-        require.globals.patchRequire = global.patchRequire = function(req) { return req;};
-        require.globals.CasperError = CasperError;
-        phantom.casperEngine = "slimerjs";
-    }
-    else {
-        // patch require
+    } else {
         global.__require = require;
         global.patchRequire = patchRequire; // must be called in every casperjs module as of 1.1
         global.require = patchRequire(global.require);
+    }
+
+    if ("slimer" in global) {
+        require.globals.patchRequire = global.patchRequire;
+        require.globals.CasperError = CasperError;
+        phantom.casperEngine = "slimerjs";
+    } else {
         phantom.casperEngine = "phantomjs";
     }
 
@@ -343,11 +380,13 @@ CasperError.prototype = Object.getPrototypeOf(new Error());
         initCasperCli(phantom.casperArgs);
     }
 
-    if ("slimer" in global && phantom.casperScriptBaseDir) {
-        // initCasperCli has set casperScriptBaseDir
-        // use it instead of fs.workingDirectory
-        require.paths.pop();
-        require.paths.push(phantom.casperScriptBaseDir);
+    if ("paths" in global.require) {
+        if ((phantom.casperScriptBaseDir || "").indexOf(fs.workingDirectory) === 0) {
+            require.paths.push(phantom.casperScriptBaseDir);
+        } else {
+            require.paths.push(fs.pathJoin(fs.workingDirectory, phantom.casperScriptBaseDir));
+        }
+        require.paths.push(fs.pathJoin(require.paths[require.paths.length-1], 'node_modules'));
     }
 
     // casper loading status flag

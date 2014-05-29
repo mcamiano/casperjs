@@ -51,17 +51,17 @@ casper.test.begin('ClientUtils.exists() tests', 5, function(test) {
 casper.test.begin('ClientUtils.findAll() tests', 7, function(test) {
     var clientutils = require('clientutils').create();
     fakeDocument('<ul class="foo"><li>bar</li><li>baz</li></ul>');
-    test.assertType(clientutils.findAll('li'), 'nodelist',
+    test.assertType(clientutils.findAll('li'), 'array',
         'ClientUtils.findAll() can find matching DOM elements');
     test.assertEquals(clientutils.findAll('li').length, 2,
         'ClientUtils.findAll() can find matching DOM elements');
-    test.assertType(clientutils.findAll('ol'), 'nodelist',
+    test.assertType(clientutils.findAll('ol'), 'array',
         'ClientUtils.findAll() can find matching DOM elements');
     test.assertEquals(clientutils.findAll('ol').length, 0,
         'ClientUtils.findAll() can find matching DOM elements');
     // scoped
     var scope = clientutils.findOne('ul');
-    test.assertType(clientutils.findAll('li', scope), 'nodelist',
+    test.assertType(clientutils.findAll('li', scope), 'array',
         'ClientUtils.findAll() can find matching DOM elements within a given scope');
     test.assertEquals(clientutils.findAll('li', scope).length, 2,
         'ClientUtils.findAll() can find matching DOM elements within a given scope');
@@ -142,6 +142,35 @@ casper.test.begin('ClientUtils.getElementBounds() tests', 3, function(test) {
     });
 });
 
+casper.test.begin('ClientUtils.getElementBounds() page zoom factor tests', 3, function(test) {
+    casper.start().zoom(2).then(function() {
+        var html  = '<div id="boxes">';
+            html += '  <div id="b1" style="position:fixed;top:10px;left:11px;width:50px;height:60px"></div>';
+            html += '  <div style="position:fixed;top:20px;left:21px;width:70px;height:80px"></div>';
+            html += '</div>';
+        this.page.content = html;
+        test.assertEquals(
+            this.getElementBounds('#b1'),
+            { top: 20, left: 22, width: 100, height: 120 },
+            'ClientUtils.getElementBounds() is aware of the page zoom factor'
+        );
+        var bounds = this.getElementsBounds('#boxes div');
+        test.assertEquals(
+            bounds[0],
+            { top: 20, left: 22, width: 100, height: 120 },
+            'ClientUtils.getElementsBounds() is aware of the page zoom factor'
+        );
+        test.assertEquals(
+            bounds[1],
+            { top: 40, left: 42, width: 140, height: 160 },
+            'ClientUtils.getElementsBounds() is aware of the page zoom factor'
+        );
+    });
+    casper.run(function() {
+        test.done();
+    });
+});
+
 casper.test.begin('ClientUtils.getElementInfo() tests', 10, function(test) {
     casper.page.content = '<a href="plop" class="plip plup"><i>paf</i></a>';
     var info = casper.getElementInfo('a.plip');
@@ -199,5 +228,25 @@ casper.test.begin('ClientUtils.getElementsInfo() second element tests', 10, func
     test.assert(info[1].visible, 'ClientUtils.getElementsInfo() retrieves second element visibility');
     test.assertEquals(info[1].tag, '<a href="plap" class="plip plup"><i>puf</i></a>',
         'ClientUtils.getElementsInfo() retrieves second element whole tag contents');
+    test.done();
+});
+
+casper.test.begin('ClientUtils.getElementInfo() visibility tests', 4, function(test) {
+    casper.page.content = '<a href="plop" class="plip plup" style="display: inline"><i>paf</i></a>';
+    var info = casper.getElementInfo('a.plip');
+    test.assert(info.visible, 'ClientUtils.getElementInfo() retrieves element visibility with display inline');
+
+    casper.page.content = '<a href="plop" class="plip plup" style="display: inline-block"><i>paf</i></a>';
+    info = casper.getElementInfo('a.plip');
+    test.assert(info.visible, 'ClientUtils.getElementInfo() retrieves element visibility with display inline-block');
+
+    casper.page.content = '<a href="plop" class="plip plup" style="visibility: hidden"><i>paf</i></a>';
+    info = casper.getElementInfo('a.plip');
+    test.assertNot(info.visible, 'ClientUtils.getElementInfo() retrieves element visibility with visibility hidden');
+
+    casper.page.content = '<a href="plop" class="plip plup" style="display: none"><i>paf</i></a>';
+    info = casper.getElementInfo('a.plip');
+    test.assertNot(info.visible, 'ClientUtils.getElementInfo() retrieves element visibility with display none');
+
     test.done();
 });
